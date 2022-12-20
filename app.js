@@ -13,11 +13,6 @@ app.use(express.static(path.join(__dirname,'public')));
 
 
 app.get("/", async (req, res) => {
-  await Todo.addTodo({
-    title: "Buy milk",
-    dueDate: new Date().toISOString(),
-    completed: false
-  })
   const allTodos = await Todo.getAllTodos();
   if(req.accepts("html")) {
     res.render("index", {
