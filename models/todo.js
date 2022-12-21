@@ -15,6 +15,29 @@ module.exports = (sequelize, DataTypes) => {
     static addTodo({title, dueDate}) {
       return this.create({ title: title, dueDate: dueDate, completed: false });
     }
+    static async overdue() {
+      return await this.findAll({
+        where: {
+          dueDate: { [Op.lt]: new Date() },
+        },
+        order: [["id", "ASC"]],
+      });
+    }
+
+    static async dueToday() {
+      return await this.findAll({
+        where: { dueDate: new Date() },
+        order: [["id", "ASC"]],
+      });
+    }
+
+    static async dueLater() {
+      return await this.findAll({
+        where: { dueDate: { [Op.gt]: new Date() }},
+        order: [["id", "ASC"]],
+      });
+    }
+    
     markAsCompleted(){
       return this.update({ completed: true });
     }
