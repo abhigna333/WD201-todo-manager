@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    
+    <meta name="csrf-token" content="<%= csrfToken %>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="./css/style.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Todo Manager</title>
     <script>
-        //var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        var token = document
+            .querySelector('meta[name="csrf-token"]')
+            .getAttribute('content');
+
         function updatedTodo(id) {
             fetch(`/todos/${id}/markAsCompleted`, {
                 method: 'put',
                 headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({
+                    "_csrf": token
+                }),
             })
                 .then((res) => {
                     if(res.ok) {
@@ -28,6 +34,9 @@
             fetch(`/todos/${id}`, {
                 method: 'delete',
                 headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({
+                    "_csrf": token
+                }),
             })
                 .then((res) => {
                         window.location.reload();
@@ -42,6 +51,7 @@
         <div class = "col-start-3 col-span-2">
             <%- include("header.ejs") %>
             <form action="/todos" method="post">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="flex gap-2 py-4">
                     <div class="flex-auto">
                         <input type="text" name="title" placeholder="What's next?" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm" required />

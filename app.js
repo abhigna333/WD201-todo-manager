@@ -4,8 +4,8 @@ const app = express();
 const path = require("path");
 const { Todo } = require("./models");
 const bodyParser = require("body-parser");
-// var cookieParser = require("cookie-parser");
-// var csrf = require("tiny-csrf");
+var cookieParser = require("cookie-parser");
+var csrf = require("tiny-csrf");
 app.use(bodyParser.json());
 
 
@@ -13,8 +13,8 @@ app.set("view engine", "ejs");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser("shh! some secret string"));
-// app.use(csrf("this_should_be_32_character_long", ["POST", "PUT", "DELETE"]));
+app.use(cookieParser("shh! some secret string"));
+app.use(csrf("this_should_be_32_character_long", ["POST", "PUT", "DELETE"]));
 app.use(express.static(path.join(__dirname,'public')));
 
 
@@ -30,7 +30,7 @@ app.get("/", async (request, response) => {
       dueToday,
       dueLater,
       completed,
-      //csrfToken: request.csrfToken(),
+      csrfToken: request.csrfToken(),
     });
   } else {
     response.json({
@@ -73,7 +73,10 @@ app.get("/todos/:id", async function (request, response) {
 
 app.post("/todos", async function (request, response) {
   try {
-    await Todo.addTodo(request.body);
+    await Todo.addTodo({
+      title: request.body.title,
+      dueDate: request.body.dueDate,
+    });
     return response.redirect("/");
   } catch (error) {
     console.log(error);
