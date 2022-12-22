@@ -19,21 +19,30 @@ module.exports = (sequelize, DataTypes) => {
       return await this.findAll({
         where: {
           dueDate: { [Op.lt]: new Date() },
+          completed: false,
         },
         order: [["id", "ASC"]],
+        
       });
     }
 
     static async dueToday() {
       return await this.findAll({
-        where: { dueDate: new Date() },
+        where: { 
+          dueDate: new Date(),
+          completed: false,
+        },
         order: [["id", "ASC"]],
+        
       });
     }
 
     static async dueLater() {
       return await this.findAll({
-        where: { dueDate: { [Op.gt]: new Date() }},
+        where: { 
+          dueDate: { [Op.gt]: new Date() },
+          completed: false,
+        },
         order: [["id", "ASC"]],
       });
     }
