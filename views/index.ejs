@@ -8,9 +8,34 @@
     <link href="./css/style.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Todo Manager</title>
-    <!-- <script>
-        var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    </script> -->
+    <script>
+        //var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        function updatedTodo(id) {
+            fetch(`/todos/${id}/markAsCompleted`, {
+                method: 'put',
+                headers: { 'Content-type': 'application/json' },
+            })
+                .then((res) => {
+                    if(res.ok) {
+                        window.location.reload();
+                    }
+                    
+                })
+                .catch((err) => console.error(err));
+        }
+
+        function deleteTodo(id) {
+            fetch(`/todos/${id}`, {
+                method: 'delete',
+                headers: { 'Content-type': 'application/json' },
+            })
+                .then((res) => {
+                        window.location.reload();
+                    
+                })
+                .catch((err) => console.error(err));
+        }
+    </script>
 </head>
 <body>
     <div class = "grid grid-cols-6">

@@ -53,8 +53,12 @@ module.exports = (sequelize, DataTypes) => {
       return this.findAll();
     }
 
-    delete() {
-      return this.destroy();
+    static remove(id){
+      return this.destroy({
+        where: {
+          id,
+        }
+      });
     }
   }
   Todo.init({
