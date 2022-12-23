@@ -64,7 +64,7 @@ describe("Todo Application", function () {
 
     var markCompletedResponse = await agent.put(`/todos/${latestTodo.id}`).send({
       _csrf: crsfToken,
-      completed: false,
+      completed: true,
     });
     var parsedUpdateResponse = JSON.parse(markCompletedResponse.text);
     expect(parsedUpdateResponse.completed).toBe(true);
@@ -74,7 +74,7 @@ describe("Todo Application", function () {
 
     markCompletedResponse = await agent.put(`/todos/${latestTodo.id}`).send({
       _csrf: crsfToken,
-      completed: true,
+      completed: false,
     });
     parsedUpdateResponse = JSON.parse(markCompletedResponse.text);
     expect(parsedUpdateResponse.completed).toBe(false);
