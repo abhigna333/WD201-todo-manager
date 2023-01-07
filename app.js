@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const { Todo } = require("./models");
+const { User } = require("./models")
 const bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
 var csrf = require("tiny-csrf");
@@ -43,33 +44,40 @@ app.get("/", async (request, response) => {
   
 });
 
+app.get('/signup',(request,response)=>{
+  response.render('signup',{
+    title: 'Sign Up',
+    csrfToken: request.csrfToken(),
+  });
+});
 
 
 
-app.get("/todos", async function (_request, response) {
-  console.log("Processing list of all Todos ...");
-  // FILL IN YOUR CODE HERE
-  try {
-    const todos = await Todo.getAllTodos();
-    return response.send(todos);
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
-  }
+
+// app.get("/todos", async function (_request, response) {
+//   console.log("Processing list of all Todos ...");
+//   // FILL IN YOUR CODE HERE
+//   try {
+//     const todos = await Todo.getAllTodos();
+//     return response.send(todos);
+//   } catch (error) {
+//     console.log(error);
+//     return response.status(422).json(error);
+//   }
   // First, we have to query our PostgerSQL database using Sequelize to get list of all Todos.
   // Then, we have to respond with all Todos, like:
   // response.send(todos)
-});
+// });
 
-app.get("/todos/:id", async function (request, response) {
-  try {
-    const todo = await Todo.findByPk(request.params.id);
-    return response.json(todo);
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
-  }
-});
+// app.get("/todos/:id", async function (request, response) {
+//   try {
+//     const todo = await Todo.findByPk(request.params.id);
+//     return response.json(todo);
+//   } catch (error) {
+//     console.log(error);
+//     return response.status(422).json(error);
+//   }
+// });
 
 app.post("/todos", async function (request, response) {
   try {
@@ -83,6 +91,20 @@ app.post("/todos", async function (request, response) {
     return response.status(422).json(error);
   }
 });
+
+app.post("/users", async (request, response) => {
+  try {
+    const user = await User.create({
+        firstName: request.body.firstName,
+        lastName: request.body.lastName,
+        email: request.body.email,
+        password: request.body.password
+      }); 
+      response.redirect("/");
+  } catch (error) {
+    console.log(error);
+  }
+})
 
 app.put("/todos/:id", async function (request, response) {
   const todo = await Todo.findByPk(request.params.id);
