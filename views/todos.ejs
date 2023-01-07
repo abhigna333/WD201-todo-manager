@@ -56,15 +56,22 @@
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                 <div class="flex gap-2 py-4">
                     <div class="flex-auto">
-                        <input type="text" name="title" placeholder="What's next?" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm" required />
+                        <input type="text" name="title" placeholder="What's next?" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm" />
                     </div>
                     <div class="flex-auto">
-                        <input type="date" name="dueDate" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm leading-4" required/>                    
+                        <input type="date" name="dueDate" class="border border-gray-300 rounded text-gray-900 w-full p-2 text-sm leading-4" />                    
                     </div>
                     <div class="flex-auto">
                     <button type="submit" class="bg-green-600 px-5 py-1.5 rounded text-white font-medium">Add</button>                    
                     </div>
                 </div>
+                    <% if(messages && messages.error && messages.error.length > 0)  { %>
+                        <% for(var i=0; i<messages.error.length; i++) { %>
+                                <li class="text-red-600 font-small"> <%= messages.error[i] %> </li>
+                        <% } %>
+                      <% } %>
+                <span class="py-5"></span>
+                
                 
             <%- include("todo.ejs", {title: "Overdue", data: overdue}) %>
             <%- include("todo.ejs", {title: "Due Today", data: dueToday}) %>

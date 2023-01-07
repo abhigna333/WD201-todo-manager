@@ -11,14 +11,18 @@ const passport = require("passport");
 const connectEnsureLogin = require("connect-ensure-login");
 const session = require("express-session");
 const LocalStrategy = require("passport-local");
+
 const bcrypt = require("bcrypt");
-
-
 const saltRounds = 10;
+
+const flash = require("connect-flash");
+
+
+
 
 app.use(bodyParser.json());
 
-
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 app.use(express.json());
@@ -26,6 +30,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser("shh! something secret"));
 app.use(csrf("this_should_be_32_character_long", ["POST", "PUT", "DELETE"]));
 app.use(express.static(path.join(__dirname,'public')));
+app.use(flash());
 
 app.use(session({
   secret: "my-super-secret-key-36734828947944847",
@@ -36,6 +41,10 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(function(request, response, next) {
+  response.locals.messages = request.flash();
+  next();
+});
 
 passport.use(new LocalStrategy({
   usernameField: "email",
@@ -48,11 +57,12 @@ passport.use(new LocalStrategy({
         return done(null, user);
       }
       else {
-        return done("Invalid password");
+        return done(null, false, { message: "Invalid password" });
       }
       
     }).catch((error) => {
-      return (error)
+      console.log(error);
+      return done(null, false, { message: "You are not registered, Signup to register" });
     })
 }));
 
@@ -71,13 +81,21 @@ passport.deserializeUser((id, done) =>{
 });
 
 app.get("/", async (request, response) => {
-  response.render("index", {
+  if (request.user) { 
+    response.redirect("/todos")
+  } 
+  else {
+    response.render("index", {
     title: "Todo application",
     csrfToken: request.csrfToken(),
-  }); 
+  });
+ }
 });
 
-app.get("/todos", connectEnsureLogin.ensureLoggedIn(), async (request, response) => {
+app.get(
+  "/todos", 
+  connectEnsureLogin.ensureLoggedIn(), 
+  async (request, response) => {
   const loggedInUser = request.user.id;
   const overdue = await Todo.overdue(loggedInUser);
   const dueToday = await Todo.dueToday(loggedInUser);
@@ -123,27 +141,65 @@ app.get("/signout", (request, response, next) => {
   })
 })
 
-app.post("/session", passport.authenticate("local", { failureRedirect: "/login" }), (request, response) => {
+app.post(
+  "/session", 
+  passport.authenticate("local", { 
+    failureRedirect: "/login",
+    failureFlash: true,
+  }),
+  function (request, response) {
   console.log(request.user)
   response.redirect("/todos")
 });
 
-app.post("/todos", connectEnsureLogin.ensureLoggedIn(), async function (request, response) {
-  try {
-    await Todo.addTodo({
-      title: request.body.title,
-      dueDate: request.body.dueDate,
-      userId: request.user.id,
-    });
-    return response.redirect("/todos");
-  } catch (error) {
-    console.log(error);
-    return response.status(422).json(error);
-  }
+app.post(
+  "/todos", 
+  connectEnsureLogin.ensureLoggedIn(), 
+  async function (request, response) {
+
+    if(!request.body.title) {
+      request.flash("error", "Title cannot be empty");
+    }
+
+    if(!request.body.dueDate) {
+      request.flash("error", "Due date cannot be empty");
+    }
+
+    if(!request.body.dueDate || !request.body.title) {
+      return response.redirect("/todos");
+    }
+
+    try {
+      await Todo.addTodo({
+        title: request.body.title,
+        dueDate: request.body.dueDate,
+        userId: request.user.id,
+      });
+      return response.redirect("/todos");
+    } catch (error) {
+      console.log(error);
+      return response.status(422).json(error);
+    }
 });
 
 app.post("/users", async (request, response) => {
-  
+  if(request.body.firstName === "") {
+    request.flash("error", "First Name cannot be empty");
+    
+  }
+
+  if(request.body.email === "") {
+    request.flash("error", "Email cannot be empty")    
+  }
+
+  if(request.body.password === "") {
+    request.flash("error", "Password cannot be empty")    
+  }
+
+  if(request.body.email === "" || request.body.firstName === "" || request.body.password === "") {
+    return response.redirect("/signup") 
+  }
+
   const hasedPwd = await bcrypt.hash(request.body.password, saltRounds);
   
   try {
@@ -166,7 +222,10 @@ app.post("/users", async (request, response) => {
 
 
 
-app.put("/todos/:id", connectEnsureLogin.ensureLoggedIn(), async function (request, response) {
+app.put(
+  "/todos/:id", 
+  connectEnsureLogin.ensureLoggedIn(), 
+  async function (request, response) {
   const todo = await Todo.findByPk(request.params.id);
   
   try {
