@@ -97,6 +97,8 @@ app.get(
   connectEnsureLogin.ensureLoggedIn(), 
   async (request, response) => {
   const loggedInUser = request.user.id;
+  const name = await User.getName(loggedInUser);
+  console.log(name);
   const overdue = await Todo.overdue(loggedInUser);
   const dueToday = await Todo.dueToday(loggedInUser);
   const dueLater = await Todo.dueLater(loggedInUser);
@@ -108,6 +110,7 @@ app.get(
       dueLater,
       completed,
       title: "Todos application",
+      username: name,
       csrfToken: request.csrfToken(),
     });
   } else {
@@ -118,7 +121,20 @@ app.get(
       completed,
     });
   }
-})
+});
+
+app.get(
+  "/alltodos",
+  connectEnsureLogin.ensureLoggedIn(),
+  async function (request, response) {
+    try {
+      const todos = await Todo.getTodos(request.user.id);
+      return response.json(todos);
+    } catch (error) {
+      return response.status(500).send(error);
+    }
+  }
+);
 
 app.get('/signup',(request,response)=>{
   response.render('signup',{

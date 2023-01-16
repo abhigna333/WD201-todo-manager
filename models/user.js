@@ -15,6 +15,12 @@ module.exports = (sequelize, DataTypes) => {
       })
       // define association here
     }
+
+    static async getName(id) {
+      const user = await this.findByPk(id);
+      const name = user.firstName + " " + user.lastName;
+      return name;
+    }
   }
   User.init({
     firstName: DataTypes.STRING,
